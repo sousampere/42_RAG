@@ -216,3 +216,13 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Personnal ignores
+en.subject.pdf
+subject_files/datasets_public.zip
+subject_files/moulinette.zip
+subject_files/README.md
+subject_files/vllm-0.10.1.zip
+vllm-0.10.1/
+vllm-0.10.1.zip
+en.subject.md
