@@ -13,7 +13,7 @@ PROJECT_NAME=42 RAG
 AUTHOR=sousampere
 GITHUB=sousampere/42_RAG
 
-ARGV=argv
+ARGV=
 
 # --- Colors ---
 
@@ -54,8 +54,8 @@ run: install
 	$(PYTHON) -m $(NAME) $(ARGV)
 
 lint: install
-	$(PYTHON) flake8 src ratm.py
-	$(PYTHON) mypy src ratm.py --warn-return-any --warn-unused-ignores --ignore-missing-imports --disallow-untyped-defs --check-untyped-defs
+	$(PYTHON) -m flake8 src ratm.py
+	$(PYTHON) -m mypy src ratm.py --warn-return-any --warn-unused-ignores --ignore-missing-imports --disallow-untyped-defs --check-untyped-defs
 
 lint-strict: install
 	$(PYTHON) flake8 src ratm.py

@@ -1,8 +1,11 @@
+#!/usr/bin/python3
+
+import fire
 
 
-def main():
-    print("Hello from 42-rag!")
+def index(name: str = "World") -> None:
+    print(name)
 
 
-if __name__ == "__main__":
-    main()
+if __name__ == '__main__':
+    fire.Fire(index)
