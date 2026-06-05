@@ -68,35 +68,39 @@ Made by gtourdia
 | 07 | | | ☐ |
 ---
 
-## 4.
+## 4. Performances
 
 | ID | Scenario | Expected result | Status |
 |---|---|---|---|
-| 01 | | | ☐ |
-| 02 | | | ☐ |
-| 03 | | | ☐ |
-| 04 | | | ☐ |
-| 05 | | | ☐ |
+| 01 | Indexing time | Less than 5 minutes | ☐ |
+| 02 | Cold start latency | Less than 60 secondes | ☐ |
+| 03 | Warm retrieval throughput | Less than 90 secondes for 1000 questions | ☐ |
+| 04 | Recall@5 score on docs | 80% | ☐ |
+| 05 | Recall@5 score on code | 50% | ☐ |
 | 06 | | | ☐ |
-| 07 | | | ☐ |
 
 ---
 
-## 5.
+## 5. Readme
 
 | ID | Scenario | Expected result | Status |
 |---|---|---|---|
-| 01 | | | ☐ |
-| 02 | | | ☐ |
-| 03 | | | ☐ |
-| 04 | | | ☐ |
-| 05 | | | ☐ |
-| 06 | | | ☐ |
-| 07 | | | ☐ |
+| 01 | Readme includes a description of the project | Yes | ☐ |
+| 02 | Readme includes instructions to run the program | Yes | ☐ |
+| 03 | Readme includes informations about the ressources used to make the project | Yes | ☐ |
+| 04 | Readme includes informations about the system architecture (pipeline, etc.) | Yes | ☐ |
+| 05 | Readme includes informations about the chunking strategy | Yes | ☐ |
+| 06 | Readme includes informations about the retreival method and ranking mechanism | Yes | ☐ |
+| 07 | Readme includes a section about performances analysis | Yes | ☐ |
+| 08 | Readme includes a section explaining the key implementation choices | Yes | ☐ |
+| 09 | Readme includes a section explaining the challenges faced | Yes | ☐ |
+| 10 | Readme includes a section explaining example usage of this project | Yes | ☐ |
+| 11 | Readme is written in english | Yes | ☐ |
+| 00 | | | ☐ |
 
 ---
 
-## 6.
+## 6. 
 
 | ID | Scenario | Expected result | Status |
 |---|---|---|---|
