@@ -103,3 +103,10 @@ class StudentSearchResultsAndAnswers(StudentSearchResults):
     """
     # Ignoring mypy error due to subject requiring this exact code
     search_results: list[MinimalAnswer]  # type: ignore
+
+
+class IndexArguments(BaseModel):
+    """
+    Class containing arguments of an indexing command
+    """
+    max_chunk_size: int = Field(ge=200)

@@ -14,6 +14,7 @@ AUTHOR=sousampere
 GITHUB=sousampere/42_RAG
 
 ARGV=
+MAX_CHUNK_SIZE=2000
 
 # --- Colors ---
 
@@ -48,7 +49,7 @@ install:
 	@printf "\033[8;66H║"
 	@printf "\033[9;80H\n"
 	@printf "$(CYAN)[Installation]$(RESET) ➡️  Synchronizing uv\n"
-	uv sync -q 2>/dev/null
+	uv sync
 
 run: install
 	$(PYTHON) -m $(NAME) $(ARGV)
@@ -63,3 +64,6 @@ lint-strict: install
 
 debug: install
 	$(PYTHON) -m pdb ratm.py
+
+index: install
+	$(PYTHON) -m $(NAME) index --max_chunk_size $(MAX_CHUNK_SIZE)
