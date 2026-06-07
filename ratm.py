@@ -4,7 +4,8 @@ import sys
 import fire
 from pydantic import ValidationError
 
-from src import IndexArguments
+from src import (IndexArguments,
+                 BM25Retriever)
 
 
 class RAGProcessor:
@@ -21,6 +22,7 @@ class RAGProcessor:
                   f"{e.errors()[0]['msg']}", file=sys.stderr)
             sys.exit(1)
         print(f"Indexing with chunks of {index_args.max_chunk_size}...")
+        retriever = BM25Retriever()
 
 
 if __name__ == '__main__':

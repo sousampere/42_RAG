@@ -9,3 +9,5 @@ from src.models.DataModels import (
     StudentSearchResultsAndAnswers,
     IndexArguments,
 )
+
+from src.index import BM25Retriever
