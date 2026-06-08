@@ -11,7 +11,7 @@ from src.index import FileFinder
 
 class RAGProcessor:
     @staticmethod
-    def index(max_chunk_size: int = 2000) -> None:
+    def index(max_chunk_size: int = 2000, index_target_folder: str = 'data/raw') -> None:
         """
         Index CLI command for indexing the data in the data/raw folder.
         """
@@ -28,9 +28,7 @@ class RAGProcessor:
         print(f"Indexing with chunks of {index_args.max_chunk_size}...")
 
         # Search files to index
-        INDEX_TARGET_FOLDER = 'data/raw'
-
-        BM25Retriever().from_document(INDEX_TARGET_FOLDER)
+        BM25Retriever().from_document(index_target_folder)
 
         # Index markdown files
 

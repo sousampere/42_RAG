@@ -6,6 +6,7 @@ from langchain_core.documents import Document
 from langchain_community.document_loaders import DirectoryLoader
 import glob
 import bm25s
+from langchain_text_splitters import Language, RecursiveCharacterTextSplitter
 from stemmer import stemmer
 
 class FileFinder():
@@ -36,24 +37,36 @@ class FileFinder():
 
 
 class BM25Retriever(BaseRetriever):
-    bm25: bm25s.BM25 = bm25s.BM25()
+    max_chunk_size: int
     documents: list[Document] = []
     k: int = 5
+    _retriever: bm25s.BM25 = bm25s.BM25()
+    md_splitter = RecursiveCharacterTextSplitter.from_language(
+        language=Language.MARKDOWN,
+        chunk_size=max_chunk_size
+    )
 
     @classmethod
-    def from_document(cls, path) -> None:
+    def from_document(cls, path: str = 'data/raw') -> None:
         """
         Create an instance from a list of lanchain Document objects
         """
         # Get documents
         docs = BM25Retriever.load_documents(path)
-        print(docs[0].metadata['path'])
+        print(docs[500].metadata['path'])
 
-        
+        # Extract corups
+        corpus = [doc.page_content for doc in cls.documents]
+
+
+
+
         pass
 
     def _get_relevant_documents(self, query: str, **args) -> list[Document]:
         pass
+
+    # def load_chunks
 
     @staticmethod
     def load_documents(path: str = 'data/raw') -> list[Document]:

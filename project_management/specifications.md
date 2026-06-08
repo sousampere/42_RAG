@@ -154,6 +154,8 @@ Creation of the CLI using Python Fire.
 
 Create a custom `BM25sRetriever` retreiver class for langchain, inheriting from `BaseRetriever` that can index the knowledge base, save it and load it again.
 
+Get max_chunk_size -> gather raw files to get a list of .md and .py files -> load file content -> create chunks -> tokenize chunks -> index / score -> save chunks
+
 ### Searching
 
 Use the created/loaded retriever with the `retriever.invoke("texte")` to search a term in the database.
