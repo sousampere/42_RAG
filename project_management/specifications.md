@@ -1,8 +1,8 @@
 # 42 RAG — Specification Document
 
-## ℹ️ 1. Project Overview
+# ℹ️ 1. Project Overview
 
-### What the subject is about
+## What the subject is about
 
 The goal of the project is to :
 
@@ -52,11 +52,11 @@ The goal of the project is to :
 
     -> Clear errors messages, no tracebacks, handle edge cases
 
-## 📋​ 2. CLI details
+# 📋​ 2. CLI details
 
-### Base argument
+## Base argument
 
-#### Index
+### Index
 
 ```bash
 # Start indexation of the repo
@@ -71,7 +71,7 @@ drwxrwxr-x 4 student student 4096 Dec 9 10:09 bm25_index
 drwxrwxr-x 3 student student 4096 Dec 9 10:09 chunks
 ```
 
-#### Search
+### Search
 
 ```bash
 # Search the indexed data for a single query
@@ -80,7 +80,7 @@ drwxrwxr-x 3 student student 4096 Dec 9 10:09 chunks
 $> python -m program search "How to setup an OpenAI server" --k 10
 ```
 
-#### Search dataset
+### Search dataset
 
 ```bash
 # Search the indexed data for a whole query dataset
@@ -96,7 +96,7 @@ total 4672
 -rw-rw-r-- 1 student student 4780742 Dec 9 10:14 dataset_docs_public.json
 ```
 
-#### Answer
+### Answer
 
 ```bash
 # Answer a single question using the LLM + dataset search results
@@ -105,7 +105,7 @@ total 4672
 $> python -m program answer "How to configure an OpenAI server ?" --k 10
 ```
 
-#### Answer dataset
+### Answer dataset
 
 ```bash
 # Answer multiple questions from a given file using the LLM + dataset search results
@@ -116,7 +116,7 @@ Processed 100 of 100 questions
 Saved student_search_results_and_answer to data/output/search_results_and_answer/dataset_docs_public.json
 ```
 
-#### Evaluate
+### Evaluate
 
 ```bash
 # Evaluate the results
@@ -140,32 +140,15 @@ Recall@5: 0.650
 Recall@10: 0.720
 ```
 
-## 🔧 3. Program structure
+# 🔧 3. CLI pipelines
 
-### Makefile
+## Indexing pipeline
 
-Creation of a structured makefile with overridable variables.
+```
+-> Get max_chunk_size from prompt
+-> Get .py and .md documents
+-> Chunk documents intelligently in blocs of 2000 max characters chunks
+-> Tokenize data
+-> Save output
+```
 
-### CLI
-
-Creation of the CLI using Python Fire.
-
-### Indexing
-
-Create a custom `BM25sRetriever` retreiver class for langchain, inheriting from `BaseRetriever` that can index the knowledge base, save it and load it again.
-
-Get max_chunk_size -> gather raw files to get a list of .md and .py files -> load file content -> create chunks -> tokenize chunks -> index / score -> save chunks
-
-### Searching
-
-Use the created/loaded retriever with the `retriever.invoke("texte")` to search a term in the database.
-
-Use the same principe on multiple strings to create multiple requests.
-
-### Answering
-
-Use the searching tool and connect an LLM to it to give answers.
-
-### Evaluation
-
-Calculate the overlap between the obtained source, and the true one, and check if at least 5% of the obtained source is in the real one. Repeat this for every prompt, and calculate the average success probability for docs and code.

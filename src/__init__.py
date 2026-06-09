@@ -10,4 +10,4 @@ from src.models.DataModels import (
     IndexArguments,
 )
 
-from src.index import BM25Retriever
+# from src.index import BM25Retriever

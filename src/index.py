@@ -36,70 +36,69 @@ class FileFinder():
         return md_docs + py_docs
 
 
-class BM25Retriever(BaseRetriever):
-    max_chunk_size: int
-    documents: list[Document] = []
-    k: int = 5
-    _retriever: bm25s.BM25 = bm25s.BM25()
-    md_splitter = RecursiveCharacterTextSplitter.from_language(
-        language=Language.MARKDOWN,
-        chunk_size=max_chunk_size
-    )
+# class BM25Retriever(BaseRetriever):
+#     max_chunk_size: int
+#     documents: list[Document] = []
+#     k: int = 5
+#     _retriever: bm25s.BM25 = bm25s.BM25()
+#     # md_splitter = RecursiveCharacterTextSplitter.from_language(
+#     #     language=Language.MARKDOWN,
+#     #     # chunk_size=max_chunk_size
+#     # )
 
-    @classmethod
-    def from_document(cls, path: str = 'data/raw') -> None:
-        """
-        Create an instance from a list of lanchain Document objects
-        """
-        # Get documents
-        docs = BM25Retriever.load_documents(path)
-        print(docs[500].metadata['path'])
+#     @classmethod
+#     def from_document(cls, path: str = 'data/raw') -> None:
+#         """
+#         Create an instance from a list of lanchain Document objects
+#         """
+#         # Get documents
+#         docs = BM25Retriever.load_documents(path)
+#         print(docs[500].metadata['path'])
 
-        # Extract corups
-        corpus = [doc.page_content for doc in cls.documents]
-
-
+#         # Extract corups
+#         corpus = [doc.page_content for doc in cls.documents]
 
 
-        pass
 
-    def _get_relevant_documents(self, query: str, **args) -> list[Document]:
-        pass
 
-    # def load_chunks
+#         pass
 
-    @staticmethod
-    def load_documents(path: str = 'data/raw') -> list[Document]:
-        """
-        Loads python and markdown documents from the given path,
-        including subfolders.
-        """
-        # Initialize return list
-        doc_list: list[Document] = []
+#     def _get_relevant_documents(self, query: str, **args) -> list[Document]:
+#         pass
 
-        # Find document paths
-        files = FileFinder.search_all(path)
+#     # def load_chunks
 
-        # Add content to list
-        for file in files:
-            try:
-                with open(file, 'r') as f:
-                    d_content = f.read()
-                    # Create doc object and append to list
-                    doc = Document(
-                        d_content,
-                        metadata={
-                            'path': file
-                        }
-                    )
-                    doc_list.append(doc)
-            except (
-                FileNotFoundError,
-                PermissionError,
-                UnicodeDecodeError
-            ):
-                # Skip this file if invalid
-                pass
+#     @staticmethod
+#     def load_documents(path: str = 'data/raw') -> list[Document]:
+#         """
+#         Loads python and markdown documents from the given path,
+#         including subfolders.
+#         """
+#         # Initialize return list
+#         doc_list: list[Document] = []
 
-        return doc_list
+#         # Find document paths
+#         files = FileFinder.search_all(path)
 
+#         # Add content to list
+#         for file in files:
+#             try:
+#                 with open(file, 'r') as f:
+#                     d_content = f.read()
+#                     # Create doc object and append to list
+#                     doc = Document(
+#                         d_content,
+#                         metadata={
+#                             'path': file
+#                         }
+#                     )
+#                     doc_list.append(doc)
+#             except (
+#                 FileNotFoundError,
+#                 PermissionError,
+#                 UnicodeDecodeError
+#             ):
+#                 # Skip this file if invalid
+#                 pass
+
+#         return doc_list
