@@ -3,12 +3,12 @@
 import sys
 import fire
 from langchain_community.document_loaders import DirectoryLoader, TextLoader
-from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain_text_splitters import Language, RecursiveCharacterTextSplitter
 from langchain_community.retrievers import BM25Retriever
 from pydantic import ValidationError
 
 from src import (IndexArguments)
-from src.index import FileFinder
+from src.Retriever import FileFinder
 
 
 class RAGProcessor:
@@ -21,7 +21,7 @@ class RAGProcessor:
         try:
             index_args = IndexArguments(max_chunk_size=max_chunk_size)
         except ValidationError as e:
-            # Invalid argument for indexing
+            # Print invalid argument for indexing and quit
             print(f"Invalid argument: {e.errors()[0]['loc'][0]}, "
                   f"{e.errors()[0]['msg']}", file=sys.stderr)
             sys.exit(1)
@@ -35,6 +35,7 @@ class RAGProcessor:
 
         # 2. Découper le texte en morceaux (chunks) adaptés
         text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50, add_start_index=True)
+        text_splitter = RecursiveCharacterTextSplitter.from_language(language=Language.MARKDOWN, chunk_size=500, chunk_overlap=50, add_start_index=True)
         chunks = text_splitter.split_documents(documents)
 
         # 3. Initialiser le retriever avec les morceaux de texte
@@ -44,7 +45,6 @@ class RAGProcessor:
 
         # 4. Utiliser le retriever
         resultats = retriever.invoke("How to instantiate an LLM ?")
-
 
         print(resultats[0].page_content)
 
