@@ -1,40 +1,122 @@
 
-from abc import ABC
-from json import load
-from pydoc import text
-from typing import Any
-from sqlalchemy import over
-from typing_extensions import Doc
-
+import bm25s
 from langchain_core.callbacks.manager import CallbackManagerForRetrieverRun
 from langchain_core.retrievers import BaseRetriever
 from langchain_core.documents import Document
-from langchain_community.document_loaders import DirectoryLoader
-import glob
-import bm25s
 from langchain_text_splitters import Language, RecursiveCharacterTextSplitter
-from stemmer import stemmer
 from langchain_community.document_loaders import DirectoryLoader, TextLoader
+import hashlib
 
-class BM25Retriever(BaseRetriever):
-    def from_index(self, chunk_size: int, overlap: float) -> None:
+class RetrieverException(Exception):
+    pass
+
+class BM25sRetriever(BaseRetriever):
+    """
+    Lanchain Retriever using the BM25s python module.
+    """
+    _retriever: bm25s.BM25 | None = None
+    _corpus: list[str] | None = None
+    _documents: list[Document] | None = None
+
+    def index(self, chunk_size: int, overlap: float) -> bm25s.BM25:
         """
         Load documents and index them using the BM25s retriever.
         """
-        documents = self.load_documents(chunk_size, overlap)
+        # Load chunked documents
+        documents = self._load_documents(chunk_size, overlap)
+        self._documents = documents
 
-        print(documents[-1])
+        # Create list of text
+        corpus = [doc.page_content for doc in documents]
+        self._corpus = corpus
 
-    def _get_relevant_documents(self, query: str, *, run_manager: CallbackManagerForRetrieverRun) -> list[Document]:
-        return super()._get_relevant_documents(query, run_manager=run_manager)
+        # Load previous index if already indexed
+        try:
+            signature = self._get_dataset_hash()
+            retriever = bm25s.BM25.load(
+                f'data/processed/{signature}',
+                load_corpus=True
+            )
+            print('Loaded data !')
+            self._retriever = retriever
+            return retriever
+        except FileNotFoundError:
+            pass
 
-    def load_documents_in_given_format(self,
-                                        chunk_size: int,
-                                        overlap: float,
-                                        extension: str,
-                                        language: Language,
-                                        main_directory: str = './data/raw'
-                                        ) -> list[Document]:
+        # Tokenize copus
+        tokenized_corpus = bm25s.tokenize(corpus)
+
+        # Index
+        retriever = bm25s.BM25()
+        retriever.index(tokenized_corpus)
+
+        # Save index with corresponding dataset signature
+        self._retriever = retriever
+        folder_name = self._get_dataset_hash()
+        retriever.save(f'data/processed/{folder_name}', corpus=corpus)
+
+        return retriever
+
+    def retrieve(
+            self,
+            query: str,
+            run_manager: CallbackManagerForRetrieverRun,
+            k: int = 5
+            ) -> list[Document]:
+        """
+        Alternative function to _get_relevant_documents
+        to get documents relevant to a query.
+        """
+        return self._get_relevant_documents(
+            query,
+            k,
+            run_manager=run_manager
+        )
+
+    def _get_relevant_documents(
+            self,
+            query: str,
+            k: int = 5,
+            *,
+            run_manager: CallbackManagerForRetrieverRun
+            ) -> list[Document]:
+        """
+        Get documents relevant to a query.
+        """
+        # Raise error if retrieving invalid data
+        if self._retriever is None:
+            raise RetrieverException(
+                'Tried to retrieve without prior indexing.'
+            )
+        if self._corpus is None or self._documents is None:
+            raise RetrieverException(
+                'Empty corpus or documents data.'
+            )
+
+        # Tokenize query
+        tokenized_query = bm25s.tokenize(query)
+
+        # Retrieve
+        result = self._retriever.retrieve(
+            tokenized_query, self._corpus, k=k)
+
+        # Get corresponding Documents from retrieved texts
+        documents = []
+        for retrieved in result[0][0]:
+            for chunk in self._documents:
+                if chunk.page_content == retrieved:
+                    documents.append(chunk)
+
+        return documents
+
+    def _load_documents_in_given_format(
+            self,
+            chunk_size: int,
+            overlap: float,
+            extension: str,
+            language: Language,
+            main_directory: str = './data/raw'
+            ) -> list[Document]:
         """
         Method to load Documents from a given file format
         """
@@ -57,7 +139,7 @@ class BM25Retriever(BaseRetriever):
 
         return chunks
 
-    def load_documents(self,
+    def _load_documents(self,
                        chunk_size: int,
                        overlap: float,
                        main_directory: str = './data/raw') -> list[Document]:
@@ -65,14 +147,14 @@ class BM25Retriever(BaseRetriever):
         Method used to load markdown and python documents, chunk them
         and combine them into one single document type
         """
-        md_files = self.load_documents_in_given_format(
+        md_files = self._load_documents_in_given_format(
             chunk_size,
             overlap,
             'md',
             Language.MARKDOWN,
             main_directory
         )
-        py_files = self.load_documents_in_given_format(
+        py_files = self._load_documents_in_given_format(
             chunk_size,
             overlap,
             'py',
@@ -82,37 +164,24 @@ class BM25Retriever(BaseRetriever):
 
         return md_files + py_files
 
-        # Load .md files
-        md_loader = DirectoryLoader(main_directory, glob="**/*.md", loader_cls=TextLoader)
-        md_documents = md_loader.load()
+    def _get_dataset_hash(self) -> str:
+        """
+        Hash the content of the repo to save a signature
+        and prevent reindexing content.
+        """
+        if self._corpus is None or self._documents is None:
+            raise RetrieverException(
+                'Empty corpus or documents data.'
+            )
 
-        # Chunk .md files
-        md_text_splitter = RecursiveCharacterTextSplitter.from_language(
-            language=Language.MARKDOWN,
-            chunk_size=chunk_size,
-            chunk_overlap=int(chunk_size * overlap),
-            add_start_index=True)
-        md_chunks = md_text_splitter.split_documents(md_documents)
+        # Create string containing full data
+        full_text: str = ''
+        for text in self._corpus:
+            full_text += text
 
-        # Load .py files
-        py_loader = DirectoryLoader(main_directory, glob="**/*.py", loader_cls=TextLoader)
-        py_documents = py_loader.load()
+        # Hash data into a string
+        hashed_data = hashlib.sha1(
+            full_text.encode('utf-8')
+        ).hexdigest()
 
-        # Chunk .py files
-        py_text_splitter = RecursiveCharacterTextSplitter.from_language(
-            language=Language.PYTHON,
-            chunk_size=chunk_size,
-            chunk_overlap=int(chunk_size * overlap),
-            add_start_index=True)
-        py_chunks = py_text_splitter.split_documents(py_documents)
-
-        # Combine data
-        combined_data = md_chunks + py_chunks
-
-        # Add 'end_index' key in metadata
-        for doc in combined_data:
-            doc.metadata['end_index'] = \
-                doc.metadata['start_index'] + len(doc.page_content)
-
-        # Return .py and .md
-        return combined_data
+        return hashed_data
