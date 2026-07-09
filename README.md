@@ -1,4 +1,4 @@
-# 42 RAG
+# 42 RAG - [ARCHIVED], see 42_RAG_2.0
 
 Personal implementation of the 42 RAG project — a Retrieval-Augmented Generation pipeline for code and documentation.
 
