@@ -1,19 +1,23 @@
 #!/usr/bin/python3
 
-import sys
-import fire
-from langchain_community.document_loaders import DirectoryLoader, TextLoader
-from langchain_text_splitters import Language, RecursiveCharacterTextSplitter
-from langchain_community.retrievers import BM25Retriever
-from pydantic import ValidationError
+from src import LLM
 
-from src import (IndexArguments)
-from src.Retriever import FileFinder
+
+try:
+    import sys
+    import fire
+    from pydantic import ValidationError
+
+    from src import IndexArguments
+    from src import BM25sRetriever, RetrieverException
+except (KeyboardInterrupt, EOFError):
+    print('Exiting.')
+    sys.exit(0)
 
 
 class RAGProcessor:
     @staticmethod
-    def index(max_chunk_size: int = 2000, index_target_folder: str = 'data/raw') -> None:
+    def index(max_chunk_size: int = 2000) -> None:
         """
         Index CLI command for indexing the data in the data/raw folder.
         """
@@ -22,35 +26,54 @@ class RAGProcessor:
             index_args = IndexArguments(max_chunk_size=max_chunk_size)
         except ValidationError as e:
             # Print invalid argument for indexing and quit
-            print(f"Invalid argument: {e.errors()[0]['loc'][0]}, "
-                  f"{e.errors()[0]['msg']}", file=sys.stderr)
+            print(f"[Error] Invalid argument: {e.errors()[0]['loc'][0]}. "
+                  f"{e.errors()[0]['msg']}.", file=sys.stderr)
             sys.exit(1)
 
-        # Inform user that the process is starting
-        print(f"Indexing with chunks of {index_args.max_chunk_size}...")
+        try:
+            retriever = BM25sRetriever()
+            retriever.index(
+                chunk_size=index_args.max_chunk_size,
+                overlap=0.1
+            )
+        except RetrieverException as e:
+            print(f"[Error]: {e}", file=sys.stderr)
+            sys.exit(1)
 
-        # 1. Charger tous les fichiers d'un dossier (ex: des fichiers .txt)
-        loader = DirectoryLoader('./data/raw', glob="**/*.md", loader_cls=TextLoader)
-        documents = loader.load()
+        print('Ingestion complete! Indices saved under data/processed/')
 
-        # 2. Découper le texte en morceaux (chunks) adaptés
-        text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50, add_start_index=True)
-        text_splitter = RecursiveCharacterTextSplitter.from_language(language=Language.MARKDOWN, chunk_size=500, chunk_overlap=50, add_start_index=True)
-        chunks = text_splitter.split_documents(documents)
+    @staticmethod
+    def answer(
+            query: str,
+            k: int = 10,
+            model_name: str = 'Qwen/Qwen3-0.6B'
+            ) -> None:
+        # Verify context window
+        if 
 
-        # 3. Initialiser le retriever avec les morceaux de texte
-        # C'est ici que l'indexation "en mémoire" se fait
-        retriever = BM25Retriever.from_documents(chunks)
-        retriever.k = 1
+        # Create / load indexed data for retrieving
+        retriever = BM25sRetriever()
+        retriever.index(2000, 0.1)
 
-        # 4. Utiliser le retriever
-        resultats = retriever.invoke("How to instantiate an LLM ?")
+        # Get search results for query
+        results = retriever.retrieve(
+            query=query,
+            k=k,
+            run_manager=None)
 
-        print(resultats[0].page_content)
+        # Initiate LLM
+        llm = LLM(model_name=model_name)
 
+        # Answer query using LLM
+        answer = llm.generate_answer(results)
+        print('Answer: ' + answer.answer)
 
-
+        return None
 
 if __name__ == '__main__':
-    rag = RAGProcessor()
-    fire.Fire(rag)
+    try:
+        rag = RAGProcessor()
+        fire.Fire(rag)
+    except (KeyboardInterrupt, EOFError):
+        print('Exiting.')
+        sys.exit(0)

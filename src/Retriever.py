@@ -1,4 +1,7 @@
 
+from re import search
+from uuid import uuid4
+
 import bm25s
 from langchain_core.callbacks.manager import CallbackManagerForRetrieverRun
 from langchain_core.retrievers import BaseRetriever
@@ -6,6 +9,8 @@ from langchain_core.documents import Document
 from langchain_text_splitters import Language, RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import DirectoryLoader, TextLoader
 import hashlib
+
+from src.models.DataModels import MinimalSearchResults, MinimalSource
 
 class RetrieverException(Exception):
     pass
@@ -37,10 +42,10 @@ class BM25sRetriever(BaseRetriever):
                 f'data/processed/{signature}',
                 load_corpus=True
             )
-            print('Loaded data !')
             self._retriever = retriever
             return retriever
         except FileNotFoundError:
+            # Not cached yet. Ignoring cache
             pass
 
         # Tokenize copus
@@ -62,16 +67,38 @@ class BM25sRetriever(BaseRetriever):
             query: str,
             run_manager: CallbackManagerForRetrieverRun,
             k: int = 5
-            ) -> list[Document]:
+            ) -> MinimalSearchResults:
         """
         Alternative function to _get_relevant_documents
-        to get documents relevant to a query.
+        to get documents relevant to a query, in a list
+        of MinimalSource objects.
         """
-        return self._get_relevant_documents(
+        # Get documents
+        documents = self._get_relevant_documents(
             query,
             k,
             run_manager=run_manager
         )
+
+        # Create MinimalSource objects
+        sources: list[MinimalSource] = []
+        for doc in documents:
+            sources.append(
+                MinimalSource(
+                    file_path=doc.metadata['source'],
+                    first_character_index=doc.metadata['start_index'],
+                    last_character_index=doc.metadata['end_index'],
+                )
+            )
+
+        # Create MinimalSearchResult object to return
+        search_results = MinimalSearchResults(
+            question_id=str(uuid4()),
+            question=query,
+            retrieved_sources=sources
+        )
+
+        return search_results
 
     def _get_relevant_documents(
             self,

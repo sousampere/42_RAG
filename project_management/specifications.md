@@ -68,8 +68,14 @@ Ingestion complete! Indices saved under data/processed/
 $> ls -l data/processed
 total 8
 drwxrwxr-x 4 student student 4096 Dec 9 10:09 bm25_index
+drwxrwxr-x 4 student student 4096 Dec 9 10:09 signature_data
 drwxrwxr-x 3 student student 4096 Dec 9 10:09 chunks
 ```
+
+Index command creates :
+- `<signature_of_data>` folder : containing the indexation of the data with the signature as its name. This will create a cache for the given data to prevent useless indexing
+- `index` folder : containing the latest indexation realised (will be used to retrieve)
+- `chunks` folder : containing every chunks of the latest indexation. One file contains one chunk
 
 ### Search
 

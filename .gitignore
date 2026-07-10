@@ -229,3 +229,5 @@ en.subject.md
 datasets_public/
 moulinette_pkg/
 test.py
+data/processed/*
+/subject_files/moulinette_pkg/
